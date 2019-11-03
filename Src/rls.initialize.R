@@ -1,0 +1,17 @@
+rls.initialize <- function(){
+  setwd('\\\\icnas4.cc.ic.ac.uk/xl6116/R/R-3.5.0/Files')
+  source('rls_iterations.R')
+  source('rls.R')
+  source('rls_fast.R')
+  source('rls.data_mat_setter.R')
+  source('rls_test.R')
+  source('rls_cp.R')
+  source('rls_cusumsq.R')
+  source('gka.R')
+  source('gka_quantile.R')
+  source('kst.R')
+  source('gka_p.R')
+  source('gka_insert.R')
+  # source('untitled.R')
+  print('The rls functions have been successfully sourced.')
+}

@@ -1,0 +1,512 @@
+v <- response[n+1]
+gka.summary <- gka.summary.total[[sum.index]]
+# Fill in the first 1 iteration
+if (n.mat[sum.index] == 0){
+gka.summary[1,] <- c(v,1,0)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+else{
+s <- nrow(gka.summary)
+if (n.mat[sum.index] %% (1/(2*epsilon)) == 0){
+i = s - 1
+while (i >= 2){
+j = i-1
+delta.i <- gka.summary[i,3]
+g.sum <- sum(gka.summary[j:i,2])
+v <- gka.summary[i,1]
+while (j >= 2 && ((g.sum + delta.i) < 2*epsilon*n)){
+j <- j - 1
+g.sum <- g.sum + gka.summary[j,2]
+}
+# Tune one index up
+j <- j + 1
+# DELETE phase
+if (j < i){
+# Merge tuples from j to i
+gka.summary <- gka.summary[-((j+1):i),]
+gka.summary[j,] <- data.frame('v'=v, 'g'=g.sum-gka.summary[(j-1),2], 'delta'=delta.i)
+}
+# Continue from the largest integer smaller than j
+i <- j - 1
+# Update size of the summary
+s <- nrow(gka.summary)
+}
+}
+# INSERT phase
+gka.summary <- gka.insert(v, gka.summary)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+# Update the no. of current data
+n.mat[sum.index] <- n.mat[sum.index] + 1
+# Update the current summary
+gka.summary.total[[sum.index]] <- gka.summary
+}
+}
+print(Sys.time() )
+print(Sys.time())
+learn.time <- 200
+N <- 800
+N.test <- N - learn.time
+response <- matrix(NA, nrow=N, ncol=1)
+response <- rnorm(N, 0, 1)
+response[1:learn.time] <- rnorm(learn.time, 0, 1)
+response[(learn.time+1):(learn.time+N.test/3)] <- rnorm(N.test/3, 0, 1)
+response[(learn.time+N.test/3+1):(learn.time+2*N.test/3)] <- rnorm(N.test/3, 5, 1)
+response[(learn.time+2*N.test/3+1):(N)] <- rnorm(N.test/3, 0, 1)
+# Initial setting
+h.u <- qchisq(0.99, 2)
+h.l <- qchisq(0.95, 2)
+count.limit <- 5
+phase.no <- 2
+epsilon <- 2/N
+gka.summary <- data.frame(matrix(NA, ncol=3, nrow=1))
+colnames(gka.summary) <- c('v','g','delta')
+gka.summary.total <- list()
+for (i in 1:phase.no){
+gka.summary.total[[i]] <- gka.summary
+}
+s <- 0
+n.mat <- matrix(0,ncol=phase.no,nrow=1)
+p.mat <- matrix(0,ncol=1,nrow=N)
+gka.switch <- 0
+gka.count <- matrix(0,ncol=phase.no,nrow=1)
+sum.index <- 1
+for (n in 0:(length(response)-1)){
+if (n >learn.time){
+# Compute p-values
+y <-response[n+1]
+gka.summary <- gka.summary.total[[1]]
+prob.hat <- gka.p(y, gka.summary)
+p.val <- min(1 - prob.hat, prob.hat)
+p.mat[(n+1),] <- -2*log(p.val)
+# Identify if a change in state has occurred
+if (p.mat[(n+1),] > h.u && gka.switch == 0){
+gka.count[1] <- gka.count[1] + 1
+gka.count[-1] <- 0
+if (gka.count[1] == count.limit){
+start.time <- n+1-count.limit
+gka.switch <- 1
+gka.count[1] <- 0
+print(paste('Started:', start.time))
+sum.index <- 2
+}
+}
+else if (p.mat[(n+1),] < h.l && gka.switch == 1){
+gka.count[2] <- gka.count[2] + 1
+gka.count[-2] <- 0
+if (gka.count[2] == count.limit){
+end.time <- n+1-count.limit
+gka.switch <- 0
+gka.count[2] <- 0
+print(paste('Ended:', end.time))
+sum.index <- 1
+}
+}
+else {
+gka.count[,] <- 0
+}
+}
+# if (gka.switch == 0){
+if (TRUE){
+v <- response[n+1]
+gka.summary <- gka.summary.total[[sum.index]]
+# Fill in the first 1 iteration
+if (n.mat[sum.index] == 0){
+gka.summary[1,] <- c(v,1,0)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+else{
+s <- nrow(gka.summary)
+if (n.mat[sum.index] %% (1/(2*epsilon)) == 0){
+i = s - 1
+while (i >= 2){
+j = i-1
+delta.i <- gka.summary[i,3]
+g.sum <- sum(gka.summary[j:i,2])
+v <- gka.summary[i,1]
+while (j >= 2 && ((g.sum + delta.i) < 2*epsilon*n)){
+j <- j - 1
+g.sum <- g.sum + gka.summary[j,2]
+}
+# Tune one index up
+j <- j + 1
+# DELETE phase
+if (j < i){
+# Merge tuples from j to i
+gka.summary <- gka.summary[-((j+1):i),]
+gka.summary[j,] <- data.frame('v'=v, 'g'=g.sum-gka.summary[(j-1),2], 'delta'=delta.i)
+}
+# Continue from the largest integer smaller than j
+i <- j - 1
+# Update size of the summary
+s <- nrow(gka.summary)
+}
+}
+# INSERT phase
+gka.summary <- gka.insert(v, gka.summary)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+# Update the no. of current data
+n.mat[sum.index] <- n.mat[sum.index] + 1
+# Update the current summary
+gka.summary.total[[sum.index]] <- gka.summary
+}
+}
+print(Sys.time() )
+print(Sys.time())
+learn.time <- 100
+N <- 850
+N.test <- N - learn.time
+response <- matrix(NA, nrow=N, ncol=1)
+response <- rnorm(N, 0, 1)
+response[1:learn.time] <- rnorm(learn.time, 0, 1)
+response[(learn.time+1):(learn.time+N.test/3)] <- rnorm(N.test/3, 0, 1)
+response[(learn.time+N.test/3+1):(learn.time+2*N.test/3)] <- rnorm(N.test/3, 5, 1)
+response[(learn.time+2*N.test/3+1):(N)] <- rnorm(N.test/3, 0, 1)
+# Initial setting
+h.u <- qchisq(0.99, 2)
+h.l <- qchisq(0.95, 2)
+count.limit <- 5
+phase.no <- 2
+epsilon <- 2/N
+gka.summary <- data.frame(matrix(NA, ncol=3, nrow=1))
+colnames(gka.summary) <- c('v','g','delta')
+gka.summary.total <- list()
+for (i in 1:phase.no){
+gka.summary.total[[i]] <- gka.summary
+}
+s <- 0
+n.mat <- matrix(0,ncol=phase.no,nrow=1)
+p.mat <- matrix(0,ncol=1,nrow=N)
+gka.switch <- 0
+gka.count <- matrix(0,ncol=phase.no,nrow=1)
+sum.index <- 1
+for (n in 0:(length(response)-1)){
+if (n >learn.time){
+# Compute p-values
+y <-response[n+1]
+gka.summary <- gka.summary.total[[1]]
+prob.hat <- gka.p(y, gka.summary)
+p.val <- min(1 - prob.hat, prob.hat)
+p.mat[(n+1),] <- -2*log(p.val)
+# Identify if a change in state has occurred
+if (p.mat[(n+1),] > h.u && gka.switch == 0){
+gka.count[1] <- gka.count[1] + 1
+gka.count[-1] <- 0
+if (gka.count[1] == count.limit){
+start.time <- n+1-count.limit
+gka.switch <- 1
+gka.count[1] <- 0
+print(paste('Started:', start.time))
+sum.index <- 2
+}
+}
+else if (p.mat[(n+1),] < h.l && gka.switch == 1){
+gka.count[2] <- gka.count[2] + 1
+gka.count[-2] <- 0
+if (gka.count[2] == count.limit){
+end.time <- n+1-count.limit
+gka.switch <- 0
+gka.count[2] <- 0
+print(paste('Ended:', end.time))
+sum.index <- 1
+}
+}
+else {
+gka.count[,] <- 0
+}
+}
+# if (gka.switch == 0){
+if (TRUE){
+v <- response[n+1]
+gka.summary <- gka.summary.total[[sum.index]]
+# Fill in the first 1 iteration
+if (n.mat[sum.index] == 0){
+gka.summary[1,] <- c(v,1,0)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+else{
+s <- nrow(gka.summary)
+if (n.mat[sum.index] %% (1/(2*epsilon)) == 0){
+i = s - 1
+while (i >= 2){
+j = i-1
+delta.i <- gka.summary[i,3]
+g.sum <- sum(gka.summary[j:i,2])
+v <- gka.summary[i,1]
+while (j >= 2 && ((g.sum + delta.i) < 2*epsilon*n)){
+j <- j - 1
+g.sum <- g.sum + gka.summary[j,2]
+}
+# Tune one index up
+j <- j + 1
+# DELETE phase
+if (j < i){
+# Merge tuples from j to i
+gka.summary <- gka.summary[-((j+1):i),]
+gka.summary[j,] <- data.frame('v'=v, 'g'=g.sum-gka.summary[(j-1),2], 'delta'=delta.i)
+}
+# Continue from the largest integer smaller than j
+i <- j - 1
+# Update size of the summary
+s <- nrow(gka.summary)
+}
+}
+# INSERT phase
+gka.summary <- gka.insert(v, gka.summary)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+# Update the no. of current data
+n.mat[sum.index] <- n.mat[sum.index] + 1
+# Update the current summary
+gka.summary.total[[sum.index]] <- gka.summary
+}
+}
+print(Sys.time() )
+plot(response)
+L <- 300
+time.mat <- matrix(0,nrow=2, ncol=L)
+for (l in 1:L){
+# Generate data
+learn.time <- 100
+N <- 850
+N.test <- N - learn.time
+response <- matrix(NA, nrow=N, ncol=1)
+response <- rnorm(N, 0, 1)
+response[1:learn.time] <- rnorm(learn.time, 0, 1)
+response[(learn.time+1):(learn.time+N.test/3)] <- rnorm(N.test/3, 0, 1)
+response[(learn.time+N.test/3+1):(learn.time+2*N.test/3)] <- rnorm(N.test/3, 5, 1)
+response[(learn.time+2*N.test/3+1):(N)] <- rnorm(N.test/3, 0, 1)
+# Initial setting
+h.u <- qchisq(0.99, 2)
+h.l <- qchisq(0.95, 2)
+count.limit <- 5
+phase.no <- 2
+epsilon <- 2/N
+gka.summary <- data.frame(matrix(NA, ncol=3, nrow=1))
+colnames(gka.summary) <- c('v','g','delta')
+gka.summary.total <- list()
+for (i in 1:phase.no){
+gka.summary.total[[i]] <- gka.summary
+}
+s <- 0
+n.mat <- matrix(0,ncol=phase.no,nrow=1)
+p.mat <- matrix(0,ncol=1,nrow=N)
+gka.switch <- 0
+gka.count <- matrix(0,ncol=phase.no,nrow=1)
+sum.index <- 1
+for (n in 0:(length(response)-1)){
+if (n >learn.time){
+# Compute p-values
+y <-response[n+1]
+gka.summary <- gka.summary.total[[1]]
+prob.hat <- gka.p(y, gka.summary)
+p.val <- min(1 - prob.hat, prob.hat)
+p.mat[(n+1),] <- -2*log(p.val)
+# Identify if a change in state has occurred
+if (p.mat[(n+1),] > h.u && gka.switch == 0){
+gka.count[1] <- gka.count[1] + 1
+gka.count[-1] <- 0
+if (gka.count[1] == count.limit){
+start.time <- n+1-count.limit
+time.mat[1,l] <- start.time
+gka.switch <- 1
+gka.count[1] <- 0
+# print(paste('Started:', start.time))
+sum.index <- 2
+}
+}
+else if (p.mat[(n+1),] < h.l && gka.switch == 1){
+gka.count[2] <- gka.count[2] + 1
+gka.count[-2] <- 0
+if (gka.count[2] == count.limit){
+end.time <- n+1-count.limit
+time.mat[2,l] <- end.time
+gka.switch <- 0
+gka.count[2] <- 0
+# print(paste('Ended:', end.time))
+sum.index <- 1
+}
+}
+else {
+gka.count[,] <- 0
+}
+}
+# if (gka.switch == 0){
+if (TRUE){
+v <- response[n+1]
+gka.summary <- gka.summary.total[[sum.index]]
+# Fill in the first 1 iteration
+if (n.mat[sum.index] == 0){
+gka.summary[1,] <- c(v,1,0)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+else{
+s <- nrow(gka.summary)
+if (n.mat[sum.index] %% (1/(2*epsilon)) == 0){
+i = s - 1
+while (i >= 2){
+j = i-1
+delta.i <- gka.summary[i,3]
+g.sum <- sum(gka.summary[j:i,2])
+v <- gka.summary[i,1]
+while (j >= 2 && ((g.sum + delta.i) < 2*epsilon*n)){
+j <- j - 1
+g.sum <- g.sum + gka.summary[j,2]
+}
+# Tune one index up
+j <- j + 1
+# DELETE phase
+if (j < i){
+# Merge tuples from j to i
+gka.summary <- gka.summary[-((j+1):i),]
+gka.summary[j,] <- data.frame('v'=v, 'g'=g.sum-gka.summary[(j-1),2], 'delta'=delta.i)
+}
+# Continue from the largest integer smaller than j
+i <- j - 1
+# Update size of the summary
+s <- nrow(gka.summary)
+}
+}
+# INSERT phase
+gka.summary <- gka.insert(v, gka.summary)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+# Update the no. of current data
+n.mat[sum.index] <- n.mat[sum.index] + 1
+# Update the current summary
+gka.summary.total[[sum.index]] <- gka.summary
+}
+}
+}
+hist(time.mat)
+time.mat
+sum(time.mat[1,]==0)
+time.mat1<-time.mat
+L <- 300
+time.mat <- matrix(0,nrow=2, ncol=L)
+for (l in 1:L){
+# Generate data
+learn.time <- 100
+N <- 850
+N.test <- N - learn.time
+response <- matrix(NA, nrow=N, ncol=1)
+response <- rnorm(N, 0, 1)
+response[1:learn.time] <- rnorm(learn.time, 0, 1)
+response[(learn.time+1):(learn.time+N.test/3)] <- rnorm(N.test/3, 0, 1)
+response[(learn.time+N.test/3+1):(learn.time+2*N.test/3)] <- rnorm(N.test/3, 10, 1)
+response[(learn.time+2*N.test/3+1):(N)] <- rnorm(N.test/3, 0, 1)
+# Initial setting
+h.u <- qchisq(0.99, 2)
+h.l <- qchisq(0.95, 2)
+count.limit <- 5
+phase.no <- 2
+epsilon <- 2/N
+gka.summary <- data.frame(matrix(NA, ncol=3, nrow=1))
+colnames(gka.summary) <- c('v','g','delta')
+gka.summary.total <- list()
+for (i in 1:phase.no){
+gka.summary.total[[i]] <- gka.summary
+}
+s <- 0
+n.mat <- matrix(0,ncol=phase.no,nrow=1)
+p.mat <- matrix(0,ncol=1,nrow=N)
+gka.switch <- 0
+gka.count <- matrix(0,ncol=phase.no,nrow=1)
+sum.index <- 1
+for (n in 0:(length(response)-1)){
+if (n >learn.time){
+# Compute p-values
+y <-response[n+1]
+gka.summary <- gka.summary.total[[1]]
+prob.hat <- gka.p(y, gka.summary)
+p.val <- min(1 - prob.hat, prob.hat)
+p.mat[(n+1),] <- -2*log(p.val)
+# Identify if a change in state has occurred
+if (p.mat[(n+1),] > h.u && gka.switch == 0){
+gka.count[1] <- gka.count[1] + 1
+gka.count[-1] <- 0
+if (gka.count[1] == count.limit){
+start.time <- n+1-count.limit
+time.mat[1,l] <- start.time
+gka.switch <- 1
+gka.count[1] <- 0
+# print(paste('Started:', start.time))
+sum.index <- 2
+}
+}
+else if (p.mat[(n+1),] < h.l && gka.switch == 1){
+gka.count[2] <- gka.count[2] + 1
+gka.count[-2] <- 0
+if (gka.count[2] == count.limit){
+end.time <- n+1-count.limit
+time.mat[2,l] <- end.time
+gka.switch <- 0
+gka.count[2] <- 0
+# print(paste('Ended:', end.time))
+sum.index <- 1
+}
+}
+else {
+gka.count[,] <- 0
+}
+}
+# if (gka.switch == 0){
+if (TRUE){
+v <- response[n+1]
+gka.summary <- gka.summary.total[[sum.index]]
+# Fill in the first 1 iteration
+if (n.mat[sum.index] == 0){
+gka.summary[1,] <- c(v,1,0)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+else{
+s <- nrow(gka.summary)
+if (n.mat[sum.index] %% (1/(2*epsilon)) == 0){
+i = s - 1
+while (i >= 2){
+j = i-1
+delta.i <- gka.summary[i,3]
+g.sum <- sum(gka.summary[j:i,2])
+v <- gka.summary[i,1]
+while (j >= 2 && ((g.sum + delta.i) < 2*epsilon*n)){
+j <- j - 1
+g.sum <- g.sum + gka.summary[j,2]
+}
+# Tune one index up
+j <- j + 1
+# DELETE phase
+if (j < i){
+# Merge tuples from j to i
+gka.summary <- gka.summary[-((j+1):i),]
+gka.summary[j,] <- data.frame('v'=v, 'g'=g.sum-gka.summary[(j-1),2], 'delta'=delta.i)
+}
+# Continue from the largest integer smaller than j
+i <- j - 1
+# Update size of the summary
+s <- nrow(gka.summary)
+}
+}
+# INSERT phase
+gka.summary <- gka.insert(v, gka.summary)
+# Update size of summary
+s <- nrow(gka.summary)
+}
+# Update the no. of current data
+n.mat[sum.index] <- n.mat[sum.index] + 1
+# Update the current summary
+gka.summary.total[[sum.index]] <- gka.summary
+}
+}
+}
+hist(time.mat)
+time.mat2<-time.mat
