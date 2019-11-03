@@ -1,6 +1,8 @@
 # Stats-Modelling-for-Streaming-Data
 Xing Liu, supervised by Dr [Din-Houn Lau](http://wwwf.imperial.ac.uk/~fdl06/)
+
 _Key words: time series, iterative weighted least squares, change-point detection_
+
 ## Description:
 R codes for the UROP project, conducted in summer 2018.
 
